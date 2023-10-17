@@ -578,10 +578,123 @@ echo nameserver 192.224.2.3 >> /etc/resolv.conf
 ![Alt text](img/nomer8a.png)
 ![Alt text](img/nomer8b.png)
 
-## Soal-9
+## Soal-9-10
 
 > Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.  
+> Kemudian gunakan algoritma Round Robin untuk Load Balancer pada Arjuna. Gunakan server_name pada soal nomor 1. Untuk melakukan pengecekan akses alamat web tersebut kemudian pastikan worker yang digunakan untuk menangani permintaan akan berganti ganti secara acak. Untuk webserver di masing-masing worker wajib berjalan di port 8001-8003. Contoh (Prabakusuma:8001, Abimanyu:8002, Wisanggeni:8003)
 
+Sebelum melakukan konfigurasi, Arjuna, Prabakusuma, Abimanyu, dan Wisanggeni perlu diinstallkan nginx dan php. Dapat menggunakan skrip `setup.sh` berikut.
+```shell
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update && apt install nginx php php-fpm -y
+php -v
+```
+
+Untuk membuat Prabakusuma, Abimanyu, dan Wisanggeni menjadi webserver, dibutuhkan beberapa konfigurasi untuk nginx dan webserver yang akan ditampilkan dalam bentuk index.php yang bisa dibuat dengan skrip `nginx.sh` berikut.
+```shell
+
+mkdir /var/www/jarkom
+touch /var/www/jarkom/index.php
+
+echo ' <?php
+echo "Halo, Kamu berada di xxx";
+?>' > /var/www/jarkom/index.php
+
+touch /etc/nginx/sites-available/jarkom
+
+echo 'server {
+
+	listen 800x;
+
+	root /var/www/jarkom;
+
+	index index.php index.html index.htm;
+	server_name 192.224.3.x;
+
+	location / {
+			try_files $uri $uri/ /index.php?$query_string;
+	}
+
+	# pass PHP scripts to FastCGI server
+	location ~ \.php$ {
+	include snippets/fastcgi-php.conf;
+	fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+	}
+
+location ~ /\.ht {
+			deny all;
+	}
+
+	error_log /var/log/nginx/jarkom_error.log;
+	access_log /var/log/nginx/jarkom_access.log;
+}' > /etc/nginx/sites-available/jarkom
+
+ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+
+service nginx restart
+
+service php7.0-fpm start
+service php7.0-fpm restart
+
+rm -rf /etc/nginx/sites-enabled/default
+
+nginx -t
+```
+String `xxx` dalam file index.php tersebut dapat diganti sesuai dengan letak webserver untuk menandakan bahwa load balancer di Arjuna sudah bekerja. 
+Untuk bagian `listen 800x` digunakan untuk mendefinisikan setiap webserver akan mendengarkan dari port berapa. Sebenarnya bagian ini untuk nomor 11, tetapi langsung dijalankan saja supaya tidak bingung mengganti lagi. Begitu juga dengan `server_name` yang diset sesuai dengan IP dari worker masing masing webserver.  
+
+Untuk Arjuna sendiri, dapat digunakan skrip `loadbalancer.sh`  seperti berikut.
+```shell
+touch /etc/nginx/sites-available/lb-arjuna
+
+echo '# Default menggunakan Round Robin
+upstream myweb  {
+	server 192.224.3.4:8003; #IP Wisanggeni
+	server 192.224.3.3:8002; #IP Abimanyu
+    server 192.224.3.2:8001; #IP Prabakusuma
+}
+
+server {
+	listen 80;
+	server_name arjuna.f06.com;
+
+	location / {
+	proxy_pass http://myweb;
+	}
+}' > /etc/nginx/sites-available/lb-arjuna
+
+ln -s /etc/nginx/sites-available/lb-arjuna /etc/nginx/sites-enabled
+
+service nginx start
+service nginx restart
+
+nginx -t
+```
+Pembagian setiap port untuk setiap worker dilakukan di load balancer. Untuk `server_name` diset sebagai domain yang akan mengakses load balancer ini, yaitu `arjuna.f06.com`.
+
+Untuk mengetes apakah load balancer sudah berjalan, bisa menggunakan command berikut.
+```shell
+lynx arjuna.f06.com
+```
+Setelah itu untuk mengunjungi setiap worker, karena menggunakan algoritma round robin, langsung refresh tampilan lynx dengan menggunakan `ctrl-r`.
+### Hasil
+![Alt text](img/nomer9a.png)
+![Alt text](img/nomer9b.png)
+![Alt text](img/nomer9c.png)
+## Soal-10
+
+
+### Hasil
+![Alt text](img/nomer10a.png)
+![Alt text](img/nomer10b.png)
+
+## Soal-11
+
+> Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
+
+### Hasil
+![Alt text](img/nomer11a.png)
+![Alt text](img/nomer11b.png)
 
 
 
