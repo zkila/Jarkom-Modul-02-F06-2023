@@ -26,10 +26,9 @@ Kelompok F06:
   - [Hasil Tes](#hasil-6)
 - [No. 8 - DNS](#Soal-8)
   - [Hasil Tes](#hasil-7)
-- [No. 9 - Webserver](#Soal-9)
+- [No. 9 & 10 - Webserver](#Soal-9-10)
   - [Hasil Tes](#hasil-8)
-- [No. 10 - Webserver](#Soal-10)
-  - [Hasil Tes](#hasil-9)
+
 - [No. 11 - Webserver](#Soal-11)
   - [Hasil Tes](#hasil-10)
 - [No. 12 - Webserver](#Soal-12)
@@ -681,21 +680,148 @@ Setelah itu untuk mengunjungi setiap worker, karena menggunakan algoritma round 
 ![Alt text](img/nomer9a.png)
 ![Alt text](img/nomer9b.png)
 ![Alt text](img/nomer9c.png)
-## Soal-10
 
-
-### Hasil
-![Alt text](img/nomer10a.png)
-![Alt text](img/nomer10b.png)
 
 ## Soal-11
 
-> Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy
+> Selain menggunakan Nginx, lakukan konfigurasi Apache Web Server pada worker Abimanyu dengan web server www.abimanyu.yyy.com. Pertama dibutuhkan web server dengan DocumentRoot pada /var/www/abimanyu.yyy  
 
+Untuk melakukan konfigurasi apache di Abimanyu, perlu untuk menginstall apache dan memberhentikan nginx terlebih dahulu. Bisa menggunakan skrip `apache.sh` berikut.
+```shell
+apt-get update
+apt-get install apache2 -y
+apt-get install libapache2-mod-php7.0 -y
+
+service apache2 start
+service nginx stop
+```
+Setelah itu, dapat dibuat file `.conf` di folder `sites-available` untuk mengkonfigurasikan server apachenya. Selain itu file `ports.conf` juga diedit untuk mendengarkan port 8002. Setelah itu barulah server di Abimanyu di enable dengan `a2ensite`. Semua itu dapat digunakan dengan skrip `settingapache.sh` berikut.
+```shell
+
+cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/8002.conf
+echo '<VirtualHost *:8002>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/abimanyu.f06
+        ServerName abimanyu.f06.com
+        ServerAlias www.abimanyu.f06.com
+        
+        <Directory /var/www/abimanyu.f06>
+            Options +FollowSymLinks -Multiviews
+            AllowOverride All
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/8002.conf
+
+
+cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/abimanyu.f06.com.conf
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/abimanyu.f06
+        ServerName abimanyu.f06.com
+        ServerAlias www.abimanyu.f06.com
+
+        <Directory /var/www/abimanyu.f06>
+            Options +FollowSymLinks -Multiviews
+            AllowOverride All
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/abimanyu.f06.com.conf
+
+echo 'Listen 80
+Listen 8002
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>' > /etc/apache2/ports.conf
+
+a2ensite 8002.conf
+a2ensite abimanyu.f06.com.conf
+service apache2 reload
+```
+Karena sitenya sendiri belum dibuat, dan harus menggunakan file webserver yang telah disediakan di resources, maka dapat menggunakan skrip `download.sh` berikut.
+```shell
+
+apt-get install wget -y
+apt-get install unzip -y
+
+# wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1a4V23hwK9S7hQEDEcv9FL14UkkrHc-Zc' -O abimanyu.f06.com.zip
+# wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1LdbYntiYVF_NVNgJis1GLCLPEGyIOreS' -O parikesit.abimanyu.f06.com.zip
+# wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1pPSP7yIR05JhSFG67RVzgkb-VcW9vQO6' -O rjp.baratayuda.abimanyu.f06.com.zip
+
+unzip abimanyu.f06.com.zip
+mv -v abimanyu.yyy.com/* /var/www/abimanyu.f06/
+rm -rf abimanyu.yyy.com
+
+unzip parikesit.abimanyu.f06.com.zip
+mv -v parikesit.abimanyu.yyy.com/* /var/www/parikesit.abimanyu.f06/
+rm -rf parikesit.abimanyu.yyy.com
+
+unzip rjp.baratayuda.abimanyu.f06.com.zip
+mv -v rjp.baratayuda.abimanyu.yyy.com/* /var/www/rjp.baratayuda.abimanyu.f06/
+rm -rf rjp.baratayuda.abimanyu.yyy.com
+```
+Setelah itu langsung saja bisa dicek dengan menggunakan command berikut.
+```shell
+lynx abimanyu.f06.com
+```
 ### Hasil
 ![Alt text](img/nomer11a.png)
-![Alt text](img/nomer11b.png)
 
+## Soal-12
+
+> Setelah itu ubahlah agar url www.abimanyu.yyy.com/index.php/home menjadi www.abimanyu.yyy.com/home.
+
+Dengan menyalakan module rewrite, www.abimanyu.yyy.com/index.php/home dapat disingkat menjadi www.abimanyu.yyy.com/home saja. Jalankan skrip `rewrite.sh` berikut.
+```shell
+a2enmod rewrite
+service apache2 restart
+
+touch /var/www/abimanyu.f06/.htaccess
+echo 'RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]' > /var/www/abimanyu.f06/.htaccess
+
+service apache2 restart
+```
+Setelah itu langsung coba dengan command berikut.
+```shell
+lynx www.abimanyu.f06.com/home
+```
+Apabila hasilnya sama dengan nomer 11, maka module rewrite tersebut sudah berjalan.
+### Hasil
+![Alt text](img/nomer11a.png)
+
+## Soal-13
+
+> Selain itu, pada subdomain www.parikesit.abimanyu.yyy.com, DocumentRoot disimpan pada /var/www/parikesit.abimanyu.yyy
+
+
+### Hasil
+![Alt text](img/nomer13a.png)
+![Alt text](img/nomer13b.png)
+
+## Soal-14
+
+> Pada subdomain tersebut folder /public hanya dapat melakukan directory listing sedangkan pada folder /secret tidak dapat diakses (403 Forbidden).
+
+
+### Hasil
+![Alt text](img/nomer14a.png)
+![Alt text](img/nomer14b.png)
 
 
 
