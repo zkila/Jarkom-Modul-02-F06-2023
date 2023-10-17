@@ -823,7 +823,303 @@ Apabila hasilnya sama dengan nomer 11, maka module rewrite tersebut sudah berjal
 ![Alt text](img/nomer14a.png)
 ![Alt text](img/nomer14b.png)
 
+## Soal-15
 
+> Buatlah kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache. Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden.
+
+Untuk membuat kustomisasi halaman error pada folder /error untuk mengganti error kode pada Apache, Error kode yang perlu diganti adalah 404 Not Found dan 403 Forbidden, melakukan konfigurasi pada Abimanyu dengan script `error.sh` yang berisi sebagai berikut.
+
+```shell
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.f06
+        ServerName parikesit.abimanyu.f06.com
+        ServerAlias www.parikesit.abimanyu.f06.com
+
+        <Directory /var/www/parikesit.abimanyu.f06/public>
+            Options +Indexes
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.f06/secret>
+            Options -Indexes
+        </Directory>
+
+        ErrorDocument 403 /error/403.html
+        ErrorDocument 404 /error/404.html
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+
+service apache2 restart
+```
+
+lalu jalankan skrip `apacheparikesit.sh` pada Nakula/Sadewa
+
+```shell
+lynx www.parikesit.abimanyu.f06.com
+```
+
+Hasil
+![.](img/nomer15a.png)
+
+## Soal-16
+
+> Buatlah suatu konfigurasi virtual host agar file asset `www.parikesit.abimanyu.yyy.com/public/js` menjadi `www.parikesit.abimanyu.yyy.com/js`
+
+Lakukan konfigurasi di Abimanyu dengan skrip `js.sh` 
+
+```shell
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.f06
+        ServerName parikesit.abimanyu.f06.com
+        ServerAlias www.parikesit.abimanyu.f06.com
+
+        <Directory /var/www/parikesit.abimanyu.f06/public>
+            Options +Indexes
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.f06/secret>
+            Options -Indexes
+        </Directory>
+
+        Alias "/js" "/var/www/parikesit.abimanyu.f06/public/js"
+
+        ErrorDocument 403 /error/403.html
+        ErrorDocument 404 /error/404.html
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+
+service apache2 restart
+```
+
+Lalu lakukan konfigurasi di Nakula/Sadewa dengan skrip `js.sh` 
+
+```shell
+lynx www.parikesit.abimanyu.f06.com/js
+```
+
+Hasil
+![.](img/nomer16a.png)
+
+## Soal-17
+
+> Agar aman, buatlah konfigurasi agar `www.rjp.baratayuda.abimanyu.yyy.com` hanya dapat diakses melalui port `14000` dan `14400`.
+
+untuk membuat `www.rjp.baratayuda.abimanyu.yyy.com` hanya dapat diakses melalui port `14000` dan `14400`, melakukan konfigurasi pada Abimanyu menggunakan skrip `rjp.sh` yang berisi sebagai berikut
+
+```shell
+touch /etc/apache2/sites-available/14000.conf
+echo '<VirtualHost *:14000>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.f06
+        ServerName rjp.baratayuda.abimanyu.f06.com
+        ServerAlias www.rjp.baratayuda.abimanyu.f06.com
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/14000.conf
+
+touch /etc/apache2/sites-available/14400.conf
+echo '<VirtualHost *:14400>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.f06
+        ServerName rjp.baratayuda.abimanyu.f06.com
+        ServerAlias www.rjp.baratayuda.abimanyu.f06.com
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/14400.conf
+
+a2ensite 14000.conf
+a2ensite 14400.conf
+
+echo 'Listen 80
+Listen 8002
+Listen 14000
+Listen 14400
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>' > /etc/apache2/ports.conf
+
+service apache2 restart
+```
+
+Setelah itu masukkan skrip `baratayuda.sh` pada Nakula/Sadewa
+
+```shell
+lynx www.rjp.baratayuda.abimanyu.f06.com:14000
+```
+
+Hasil
+![.](img/nomer17a.png)
+
+## Soal-18
+
+> Untuk mengaksesnya buatlah autentikasi username berupa `“Wayang”` dan password `“baratayudayyy”` dengan yyy merupakan kode kelompok. Letakkan DocumentRoot pada `/var/www/rjp.baratayuda.abimanyu.yyy`.
+
+Masukkan konfigurasi pada Abimanyu dengan skrip `password.sh` yang berisi sebagai berikut.
+
+```shell
+htpasswd -c /var/www/rjp.baratayuda.abimanyu.f06/password Wayang
+
+echo '<VirtualHost *:14000>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.f06
+        ServerName rjp.baratayuda.abimanyu.f06.com
+        ServerAlias www.rjp.baratayuda.abimanyu.f06.com
+
+        <Directory /var/www/rjp.baratayuda.abimanyu.f06>
+                AuthType Basic
+                AuthName "Authentication Required"
+                AuthUserFile /var/www/rjp.baratayuda.abimanyu.f06/password
+                Require valid-user
+        </Directory>
+
+        <Files "password">
+                Order allow,deny
+                Deny from all
+        </Files>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/14000.conf
+
+echo '<VirtualHost *:14400>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/rjp.baratayuda.abimanyu.f06
+        ServerName rjp.baratayuda.abimanyu.f06.com
+        ServerAlias www.rjp.baratayuda.abimanyu.f06.com
+
+        <Directory /var/www/rjp.baratayuda.abimanyu.f06>
+                AuthType Basic
+                AuthName "Authentication Required"
+                AuthUserFile /var/www/rjp.baratayuda.abimanyu.f06/password
+                Require valid-user
+        </Directory>
+
+        <Files "password">
+                Order allow,deny
+                Deny from all
+        </Files>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/14400.conf
+
+service apache2 restart
+```
+
+Setelah itu masukkan skrip `baratayuda.sh` pada Nakula/Sadewa
+
+```shell
+lynx www.rjp.baratayuda.abimanyu.f06.com:14400
+```
+Hasil
+![.](img/nomer18a.png)
+
+## Soal-19
+
+> Buatlah agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke `www.abimanyu.yyy.com` (alias)
+
+agar setiap kali mengakses IP dari Abimanyu akan secara otomatis dialihkan ke `www.abimanyu.yyy.com` jalankan skrip `redirect.sh` di Abimanyu yang berisi sebagai berikut.
+
+```shell
+echo 'RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [R=301,L]' > /var/www/abimanyu.f06/.htaccess
+
+service apache2 restart
+```
+
+Setelah itu masukkan skrip `apachetes.sh` pada Nakula/Sadewa Client.
+
+```shell
+lynx abimanyu.f06.com
+```
+Hasil
+![.](img/nomer19a.png)
+
+## Soal-20
+
+> Karena website `www.parikesit.abimanyu.yyy.com` semakin banyak pengunjung dan banyak gambar gambar random, maka ubahlah request gambar yang memiliki substring `“abimanyu”` akan diarahkan menuju `abimanyu.png`.
+
+agar gambar yang memiliki substring `“abimanyu”` akan diarahkan menuju `abimanyu.png`, jalankan konfigurasi di Abimanyu dengan skrip `png.sh` yang berisi sebagai berikut.
+
+```shell
+a2enmod rewrite
+
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.f06
+        ServerName parikesit.abimanyu.f06.com
+        ServerAlias www.parikesit.abimanyu.f06.com
+
+        <Directory /var/www/parikesit.abimanyu.f06/public>
+                Options +Indexes
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.f06/secret>
+                Options -Indexes
+        </Directory>
+
+        Alias "/js" "/var/www/parikesit.abimanyu.f06/public/js"
+
+        <Directory /var/www/parikesit.abimanyu.f06>
+                Options +FollowSymLinks -Multiviews
+                AllowOverride All
+        </Directory>
+
+        RewriteEngine On
+        RewriteRule .*abimanyu.* /public/images/abimanyu.png [L]
+
+        ErrorDocument 403 /error/403.html
+        ErrorDocument 404 /error/404.html
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+
+service apache2 restart
+```
+
+Setelah itu masukkan skrip `png.sh` pada Nakula/Sadewa.
+
+```shell
+curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu-student.jpg
+curl -I www.parikesit.abimanyu.f06.com/public/images/not-abimanyu.png
+curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu
+curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu.png
+```
+Hasil
+![.](img/nomer20a.png)
 
 
 
