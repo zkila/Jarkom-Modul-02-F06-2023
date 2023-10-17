@@ -6,70 +6,49 @@ Kelompok F06:
 
 ## Daftar Isi
 
-- [Official Report](#laporan-resmi)
+- [Laporan Resmi](#laporan-resmi)
   - [Daftar Isi](#daftar-isi)
   - [Topologi](#topologi)
   - [Konfig Node](#konfig)
-  - [Prasyarat](#prerequisite)
 - [No.1 - DNS](#Soal-1)
-  - [Skrip](#skrip)
   - [Hasil Tes](#hasil)
 - [No. 2 - DNS](#Soal-2)
-  - [Skrip](#skrip-1)
   - [Hasil Tes](#hasil-1)
 - [No. 3 - DNS](#Soal-3)
-  - [Skrip](#skrip-2)
   - [Hasil Tes](#hasil-2)
 - [No. 4 - DNS](#Soal-4)
-  - [Skrip](#skrip-3)
   - [Hasil Tes](#hasil-3)
 - [No. 5 - DNS](#Soal-5)
-  - [Skrip](#skrip-4)
   - [Hasil Tes](#hasil-4)
 - [No. 6 - DNS](#Soal-6)
-  - [Skrip](#skrip-5)
   - [Hasil Tes](#hasil-5)
 - [No. 7 - DNS](#Soal-7)
-  - [Skrip](#skrip-6)
   - [Hasil Tes](#hasil-6)
 - [No. 8 - DNS](#Soal-8)
-  - [Skrip](#skrip-7)
   - [Hasil Tes](#hasil-7)
 - [No. 9 - Webserver](#Soal-9)
-  - [Skrip](#skrip-8)
   - [Hasil Tes](#hasil-8)
 - [No. 10 - Webserver](#Soal-10)
-  - [Skrip](#skrip-9)
   - [Hasil Tes](#hasil-9)
 - [No. 11 - Webserver](#Soal-11)
-  - [Skrip](#skrip-10)
   - [Hasil Tes](#hasil-10)
 - [No. 12 - Webserver](#Soal-12)
-  - [Skrip](#skrip-11)
   - [Hasil Tes](#hasil-11)
 - [No. 13 - Webserver](#Soal-13)
-  - [Skrip](#skrip-12)
   - [Hasil Tes](#hasil-12)
 - [No. 14 - Webserver](#Soal-14)
-  - [Skrip](#skrip-13)
   - [Hasil Tes](#hasil-13)
 - [No. 15 - Webserver](#Soal-15)
-  - [Skrip](#skrip-14)
   - [Hasil Tes](#hasil-14)
 - [No. 16 - Webserver](#Soal-16)
-  - [Skrip](#skrip-15)
   - [Hasil Tes](#hasil-15)
 - [No. 17 - Webserver](#Soal-17)
-  - [Skrip](#skrip-16)
   - [Hasil Tes](#hasil-16)
 - [No. 18 - Webserver](#Soal-18)
-  - [Skrip](#skrip-17)
   - [Hasil Tes](#hasil-17)
 - [No. 19 - Webserver](#Soal-19)
-  - [Skrip](#skrip-18)
   - [Hasil Tes](#hasil-18)
 - [No. 20 - Webserver](#Soal-20)
-  - [Skrip](#skrip-19)
   - [Hasil Tes](#hasil-19)
  
 ### Topologi
@@ -165,3 +144,447 @@ iface eth3 inet static
     	netmask 255.255.255.0
     	gateway 192.224.3.1
     ```
+## Soal-1
+
+> Yudhistira akan digunakan sebagai DNS Master, Werkudara sebagai DNS Slave, Arjuna merupakan Load Balancer yang terdiri dari beberapa Web Server yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Buatlah topologi dengan pembagian sebagai [berikut](https://docs.google.com/spreadsheets/d/1OqwQblR_mXurPI4gEGqUe7v0LSr1yJViGVEzpMEm2e8/edit#gid=1475903193). Folder topologi dapat diakses pada drive [berikut](https://drive.google.com/drive/folders/1Ij9J1HdIW4yyPEoDqU1kAwTn_iIxg3gk)  
+
+Sebelum pengerjaan, langkah paling awal adalah menjalankan skrip setup.sh. Setelah itu dijalankan pengetesan untuk memastikan setiap node dapat terhubung ke router dan ke NAT. Pengetesan dilakukan dengan melakukan ping terhadap google.com
+
+```shell
+ping google.com -c 3
+```
+### Hasil
+![Alt text](img/nomer1a.png)
+![Alt text](img/nomer1b.png)
+
+## Soal-2
+
+> Buatlah website utama pada node arjuna dengan akses ke arjuna.yyy.com dengan alias www.arjuna.yyy.com dengan yyy merupakan kode kelompok.  
+
+Langkah pertama adalah menjalankan skrip `setup.sh` di Yudhistira yang akan menginstall bind9 karena akan dibutuhkan untuk menjalankan DNS. Berikut adalah skrip tersebut.
+```shell
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+```
+Setelah itu, langsung menjalankan skrip `arjunadns.sh` untuk membuat file konfigurasi DNS yang dibutuhkan seperti `named.conf.local` dan `arjuna.f06.com`
+
+```shell
+echo 'zone "arjuna.f06.com" {
+        type master;
+        file "/etc/bind/jarkom/arjuna.f06.com";
+};' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/jarkom
+
+cp /etc/bind/db.local /etc/bind/jarkom/arjuna.f06.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     arjuna.f06.com. root.arjuna.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      arjuna.f06.com.
+@       IN      A       192.224.1.4 ; IP Arjuna
+www     IN      CNAME   arjuna.f06.com.
+@       IN      AAAA    ::1' > /etc/bind/jarkom/arjuna.f06.com
+
+service bind9 restart
+```
+Setelah itu, pindah ke client untuk menjalankan skrip `tesdns.sh` untuk melakukan tes apabila DNS di Yudhistira sudah berjalan atau belum.
+```shell
+echo nameserver 192.224.2.2 > /etc/resolv.conf
+
+ping arjuna.f06.com -c 3
+host -t CNAME www.arjuna.f06.com
+ping www.arjuna.f06.com -c 3
+
+ping abimanyu.f06.com -c 3
+host -t CNAME www.abimanyu.f06.com
+ping www.abimanyu.f06.com -c 3
+```
+
+### Hasil
+![Alt text](img/nomer2a.png)
+![Alt text](img/nomer2b.png)
+
+## Soal-3
+
+> Dengan cara yang sama seperti soal nomor 2, buatlah website utama dengan akses ke abimanyu.yyy.com dan alias www.abimanyu.yyy.com.  
+
+Langkahnya mirip dengan nomor 2, namun dengan perbedaan di nama domain dan file yang dibuat. Skrip yang dijalankan adalah `abimanayudns.sh` dan tetap dijalankan di Yudhistira.
+```shell
+
+echo 'zone "arjuna.f06.com" {
+    type master;
+    file "/etc/bind/jarkom/arjuna.f06.com";
+};
+
+zone "abimanyu.f06.com" {
+    type master;
+    file "/etc/bind/jarkom/abimanyu.f06.com";
+};' > /etc/bind/named.conf.local
+
+
+cp /etc/bind/db.local /etc/bind/jarkom/abimanyu.f06.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.f06.com. root.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.f06.com.
+@       IN      A       192.224.3.3 ; IP Abimanyu
+www     IN      CNAME   abimanyu.f06.com.
+@       IN      AAAA    ::1' > /etc/bind/jarkom/abimanyu.f06.com
+
+service bind9 restart
+```
+Setelah itu pindah lagi ke client untuk menjalankan skrip `tesdns.sh` karena didalam skrip tersebut sudah ada command yang mengetes domain abimanyu.f06.com juga.
+```shell
+echo nameserver 192.224.2.2 > /etc/resolv.conf
+
+ping arjuna.f06.com -c 3
+host -t CNAME www.arjuna.f06.com
+ping www.arjuna.f06.com -c 3
+
+ping abimanyu.f06.com -c 3
+host -t CNAME www.abimanyu.f06.com
+ping www.abimanyu.f06.com -c 3
+```
+Skrip `tesdns.sh` tersebut juga berguna untuk memberitahu apakah `www.abimanyu.f06.com` dan `www.arjuna.f06.com` adalah CNAME dari domain yang dites.
+### Hasil
+![Alt text](img/nomer3a.png)
+![Alt text](img/nomer3b.png)
+
+## Soal-4
+
+> Kemudian, karena terdapat beberapa web yang harus di-deploy, buatlah subdomain parikesit.abimanyu.yyy.com yang diatur DNS-nya di Yudhistira dan mengarah ke Abimanyu.  
+
+Untuk membuat subdomain parikesit, yang ditambahkan adalah `parikesit IN A 192.224.3.3` pada file `abimanyu.f06.com`. Berikut adalah skrip bernama `parikesit.sh` di Yudhistira yang dapat menambahkan potongan kode tersebut.
+```shell
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.f06.com. root.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      abimanyu.f06.com.
+@       IN      A       192.224.3.3 ; IP Abimanyu
+www     IN      CNAME   abimanyu.f06.com.
+parikesit   IN  A       192.224.3.3
+@       IN      AAAA    ::1' > /etc/bind/jarkom/abimanyu.f06.com
+
+service bind9 restart
+```
+Lalu, gunakan skrip `parikesittes.sh` yang ada pada client untuk mengetes apakah subdomain tersebut sudah jalan atau tidak.
+```shell
+ping parikesit.abimanyu.f06.com -c 5
+host -t A parikesit.abimanyu.f06.com
+```
+Skrip tersebut juga mencari tahu ke IP apa subdomain tersebut menunjuk dengan menggunakan command `host -t A`.
+
+### Hasil
+![Alt text](img/nomer4a.png)
+![Alt text](img/nomer4b.png)
+
+
+## Soal-5
+
+> Buat juga reverse domain untuk domain utama. (Abimanyu saja yang direverse)  
+
+Untuk melakukan konfigurasi reverse DNS, diperlukan IP dari abimanyu, yaitu `192.224.3.3`. Setelah dapat IP tersebut, maka langsung saja direverse atau dibalik menjadi `3.3.224.192`. Reversed IP tersebut yang akan dikonfigurasikan untuk menunjuk ke domain `abimanyu.f06.com`. Berikut adalah skrip bernama `reversedns.sh` di Yudhistira yang dapat membuat konfigurasi tersebut.
+```shell
+echo 'zone "arjuna.f06.com" {
+    type master;
+    file "/etc/bind/jarkom/arjuna.f06.com";
+};
+
+zone "abimanyu.f06.com" {
+    type master;
+    file "/etc/bind/jarkom/abimanyu.f06.com";
+};
+zone "2.224.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/jarkom/2.224.192.in-addr.arpa";
+};' > /etc/bind/named.conf.local
+
+cp /etc/bind/db.local /etc/bind/jarkom/2.224.192.in-addr.arpa
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.f06.com. root.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+2.224.192.in-addr.arpa.  IN      NS      abimanyu.f06.com.
+2                        IN      PTR     abimanyu.f06.com. ; byte 4 Yudhistira' > /etc/bind/jarkom/2.224.192.in-addr.arpa
+
+service bind9 restart
+```
+Setelah melakukan konfigurasi di Yudhistira, dapat dites di client menggunakan skrip `reversedns.sh` seperti berikut.
+```shell
+echo nameserver 192.224.2.2 > /etc/resolv.conf
+host -t PTR 192.224.2.2
+```
+Command `host -t PTR` digunakan untuk mencari tahu kemana `192.224.3.3` menunjuk.
+### Hasil
+![Alt text](img/nomer5a.png)
+![Alt text](img/nomer5b.png)
+
+## Soal-6
+
+> Agar dapat tetap dihubungi ketika DNS Server Yudhistira bermasalah, buat juga Werkudara sebagai DNS Slave untuk domain utama.
+
+Karena nomor ini sudah mulai menggunakan Werkudara sebagai DNS slave, maka perlu diinstall bind9 di Werkudara dengan menggunakan skrip `setup.sh` seperti berikut.
+```shell
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+```
+Untuk membuat sistem DNS master-slave, maka perlu dilakukan konfigurasi DNS master di Yudhistira menggunakan skrip `master.sh` seperti berikut,
+```shell
+echo 'zone "arjuna.f06.com" {
+    type master;
+    notify yes;
+    also-notify {192.224.2.3;};
+    allow-transfer {192.224.2.3;};
+    file "/etc/bind/jarkom/arjuna.f06.com";
+};
+
+zone "abimanyu.f06.com" {
+    type master;
+    notify yes;
+    also-notify {192.224.2.3;};
+    allow-transfer {192.224.2.3;};
+    file "/etc/bind/jarkom/abimanyu.f06.com";
+};
+
+zone "2.224.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/jarkom/2.224.192.in-addr.arpa";
+};' > /etc/bind/named.conf.local
+
+service bind9 restart
+```
+dan konfigurasi DNS slave di Werkudara menggunakan skrip `slave.sh` seperti berikut.
+```shell
+echo '
+zone "arjuna.f06.com" {
+    type slave;
+    masters { 192.224.2.2; }; 
+    file "/var/lib/bind/arjuna.f06.com";
+};
+
+zone "abimanyu.f06.com" {
+    type slave;
+    masters { 192.224.2.2; }; 
+    file "/var/lib/bind/abimanyu.f06.com";
+};' > /etc/bind/named.conf.local
+
+service bind9 restart
+```
+Setelah konfigurasi tersebut sudah jadi, maka bisa langsung dilakukan tes dengan memberhentikan service bind9 di Yudhistira dengan command berikut:
+```shell
+service bind9 stop
+```
+Untuk melakukan tes, bisa dengan skrip `slavemastertes.sh` di client sebagai berikut.
+```shell
+echo nameserver 192.224.2.2 > /etc/resolv.conf
+echo nameserver 192.224.2.3 >> /etc/resolv.conf
+
+ping abimanyu.f06.com -c 3
+ping arjuna.f06.com -c 3
+```
+Apabila ping dapat berjalan, maka DNS slave sudah berjalan di Werkudara pada saat DNS master di yudhistira sudah mati. Setelah dilakukan tes tersebut jangan lupa untuk dinyalakan lagi bind9 di Yudhistira dengan comman berikut.
+```shell
+service bind9 start
+```
+
+### Hasil
+![Alt text](img/nomer6a.png)
+![Alt text](img/nomer6b.png)
+
+## Soal-7
+
+> Seperti yang kita tahu karena banyak sekali informasi yang harus diterima, buatlah subdomain khusus untuk perang yaitu baratayuda.abimanyu.yyy.com dengan alias www.baratayuda.abimanyu.yyy.com yang didelegasikan dari Yudhistira ke Werkudara dengan IP menuju ke Abimanyu dalam folder Baratayuda.  
+
+Untuk membuat konfigurasi delegasi, file yang diedit tidak hanya `named.conf.local` dan file DNS yang sudah dibuat seperti `abimanyu.f06.com`, tetapi juga file `named.conf.options`. Semua konfigurasi tersebut dapat langsung dijalankan dengan skrip `delegasi.sh` di Yudhistira yang berisi sebagai berikut.
+```shell
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.f06.com. root.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      abimanyu.f06.com.
+@               IN      A       192.224.3.3 ; IP Abimanyu
+www             IN      CNAME   abimanyu.f06.com.
+parikesit       IN      A       192.224.3.3
+ns1             IN      A       192.224.2.3
+baratayuda      IN      NS      ns1
+@               IN      AAAA    ::1' > /etc/bind/jarkom/abimanyu.f06.com
+
+echo 'options {
+        directory "/var/cache/bind";
+        //dnssec-validation auto;
+        allow-query{any;};
+
+        auth-nxdomain no;    # conform to RFC1035
+        listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+
+echo 'zone "arjuna.f06.com" {
+    type master;
+    notify yes;
+    also-notify {192.224.2.3;};
+    allow-transfer {192.224.2.3;};
+    file "/etc/bind/jarkom/arjuna.f06.com";
+};
+
+zone "abimanyu.f06.com" {
+    type master;
+    notify yes;
+    also-notify {192.224.2.3;};
+    allow-transfer {192.224.2.3;};
+    file "/etc/bind/jarkom/abimanyu.f06.com";
+};
+
+zone "2.224.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/jarkom/2.224.192.in-addr.arpa";
+};' > /etc/bind/named.conf.local
+
+service bind9 restart
+```
+Setelah konfigurasi di Yudhistira sudah aman, bisa lanjut konfigurasi di Werkudara dengan skrip `delegasi.sh` yang berisi sebagai berikut.
+```shell
+echo 'options {
+        directory "/var/cache/bind";
+        //dnssec-validation auto;
+        allow-query{any;};
+
+        auth-nxdomain no;    # conform to RFC1035
+        listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+
+echo '
+zone "baratayuda.abimanyu.f06.com" {
+    type master;
+    file "/etc/bind/baratayuda/baratayuda.abimanyu.f06.com";
+};' >> /etc/bind/named.conf.local
+
+mkdir /etc/bind/baratayuda
+cp /etc/bind/db.local /etc/bind/baratayuda/baratayuda.abimanyu.f06.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.f06.com. root.baratayuda.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.f06.com.
+@       IN      A       192.224.3.3 ; IP Abimanyu
+www     IN      CNAME   baratayuda.abimanyu.f06.com.' > /etc/bind/baratayuda/baratayuda.abimanyu.f06.com
+
+service bind9 restart
+```
+Werkudara yang akan menghandle CNAME `www` pada subdomain `baratayuda.abimanyu.f06.com`.  
+Setelah itu bisa langsung dites di client menggunakan skrip `delegasites.sh` seperti berikut.
+```shell
+ping baratayuda.abimanyu.f06.com -c 3
+ping www.baratayuda.abimanyu.f06.com -c 3
+```
+### Hasil
+![Alt text](img/nomer7a.png)
+![Alt text](img/nomer7b.png)
+
+## Soal-8
+
+> Untuk informasi yang lebih spesifik mengenai Ranjapan Baratayuda, buatlah subdomain melalui Werkudara dengan akses rjp.baratayuda.abimanyu.yyy.com dengan alias www.rjp.baratayuda.abimanyu.yyy.com yang mengarah ke Abimanyu.  
+
+Untuk menambahkan subdomain `rjp.baratayuda.abimanyu.f06.com` di Werkudara, tinggal menambahkan potongan konfigurasi berikut.
+```
+rjp     IN      A       192.224.3.3
+www.rjp IN      CNAME   baratayuda.abimanyu.f06.com.
+```
+Potongan konfigurasi tersebut dapat ditambahkan dengan skrip `rjp.sh` yang berada di Werkudara.
+```shell
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     baratayuda.abimanyu.f06.com. root.baratayuda.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      baratayuda.abimanyu.f06.com.
+@       IN      A       192.224.3.3 ; IP Abimanyu
+www     IN      CNAME   baratayuda.abimanyu.f06.com.
+rjp     IN      A       192.224.3.3
+www.rjp IN      CNAME   baratayuda.abimanyu.f06.com.' > /etc/bind/baratayuda/baratayuda.abimanyu.f06.com
+
+service bind9 restart
+```
+Setelah itu bisa langsung dites dengan menggunakan skrip `rjptes.sh` di client.
+```shell
+echo nameserver 192.224.2.3 > /etc/resolv.conf
+
+ping rjp.baratayuda.abimanyu.f06.com -c 3
+ping www.rjp.baratayuda.abimanyu.f06.com -c 3
+host -t CNAME www.rjp.baratayuda.abimanyu.f06.com
+```
+List `nameserver` di `/etc/resolv.conf` dibersihkan dan diset pada IP Werkudara(`192.224.2.3`) saja karena apabila tidak, host -t CNAME tidak akan mencari CNAME langsung di Werkudara, namun akan mencari di Yudhistira terlebih dahulu. Setelah tes dilakukan, jalankan skrip `defaultname.sh` untuk mengembalikan list `nameserver` untuk mengarah ke Yudhistira dan Werkudara.
+```shell
+echo nameserver 192.224.2.2 > /etc/resolv.conf
+echo nameserver 192.224.2.3 >> /etc/resolv.conf
+```
+### Hasil
+![Alt text](img/nomer8a.png)
+![Alt text](img/nomer8b.png)
+
+## Soal-9
+
+> Arjuna merupakan suatu Load Balancer Nginx dengan tiga worker (yang juga menggunakan nginx sebagai webserver) yaitu Prabakusuma, Abimanyu, dan Wisanggeni. Lakukan deployment pada masing-masing worker.  
+
+
+
+
+
+
+
