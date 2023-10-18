@@ -809,6 +809,54 @@ Apabila hasilnya sama dengan nomer 11, maka module rewrite tersebut sudah berjal
 
 > Selain itu, pada subdomain www.parikesit.abimanyu.yyy.com, DocumentRoot disimpan pada /var/www/parikesit.abimanyu.yyy
 
+lakukan konfigurasi pada Abimanyu menggunakan skrip `parikesit.sh` yang berisi sebagai berikut.
+```shell
+cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.f06
+        ServerName parikesit.abimanyu.f06.com
+        ServerAlias www.parikesit.abimanyu.f06.com
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+
+a2ensite parikesit.abimanyu.f06.com.conf
+
+service apache2 restart
+```
+lalu jalankan skrip `apacheparikesit.sh` di Yudhistira
+```shell
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     abimanyu.f06.com. root.abimanyu.f06.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      abimanyu.f06.com.
+@               IN      A       192.224.3.3 ; IP Abimanyu
+www             IN      CNAME   abimanyu.f06.com.
+parikesit       IN      A       192.224.3.3
+www.parikesit   IN      CNAME   abimanyu.f06.com.
+ns1             IN      A       192.224.2.3
+baratayuda      IN      NS      ns1
+@               IN      AAAA    ::1' > /etc/bind/jarkom/abimanyu.f06.com 
+
+service bind9 restart
+```
+lalu jalankan skrip `apacheparikesit.sh` di Nakula / Sadewa
+```shell
+lynx www.parikesit.abimanyu.f06.com
+```
+
 
 ### Hasil
 ![Alt text](img/nomer13a.png)
@@ -818,6 +866,34 @@ Apabila hasilnya sama dengan nomer 11, maka module rewrite tersebut sudah berjal
 
 > Pada subdomain tersebut folder /public hanya dapat melakukan directory listing sedangkan pada folder /secret tidak dapat diakses (403 Forbidden).
 
+lakukan konfigurasi pada Abimanyu menggunakan skrip `publicsecret.sh` yang berisi sebagai berikut.
+```shell
+echo '<VirtualHost *:80>
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/parikesit.abimanyu.f06
+        ServerName parikesit.abimanyu.f06.com
+        ServerAlias www.parikesit.abimanyu.f06.com
+
+        <Directory /var/www/parikesit.abimanyu.f06/public>
+            Options +Indexes
+        </Directory>
+
+        <Directory /var/www/parikesit.abimanyu.f06/secret>
+            Options -Indexes
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>' > /etc/apache2/sites-available/parikesit.abimanyu.f06.com.conf
+
+service apache2 restart
+```
+lalu jalankan skrip `apacheparikesit.sh` di Nakula / Sadewa
+```shell
+lynx www.parikesit.abimanyu.f06.com
+```
 
 ### Hasil
 ![Alt text](img/nomer14a.png)
