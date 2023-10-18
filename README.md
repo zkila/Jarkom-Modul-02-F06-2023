@@ -1196,6 +1196,6 @@ curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu.png
 ```
 Hasil
 ![.](img/nomer20a.png)
-
+![.](img/nomer20b.png)
 
 
