@@ -938,7 +938,7 @@ lalu jalankan skrip `apacheparikesit.sh` pada Nakula/Sadewa
 lynx www.parikesit.abimanyu.f06.com
 ```
 
-Hasil
+### Hasil
 ![.](img/nomer15a.png)
 
 ## Soal-16
@@ -982,7 +982,7 @@ Lalu lakukan konfigurasi di Nakula/Sadewa dengan skrip `js.sh`
 lynx www.parikesit.abimanyu.f06.com/js
 ```
 
-Hasil
+### Hasil
 ![.](img/nomer16a.png)
 
 ## Soal-17
@@ -1043,7 +1043,7 @@ Setelah itu masukkan skrip `baratayuda.sh` pada Nakula/Sadewa
 lynx www.rjp.baratayuda.abimanyu.f06.com:14000
 ```
 
-Hasil
+### Hasil
 ![.](img/nomer17a.png)
 
 ## Soal-18
@@ -1111,7 +1111,7 @@ Setelah itu masukkan skrip `baratayuda.sh` pada Nakula/Sadewa
 ```shell
 lynx www.rjp.baratayuda.abimanyu.f06.com:14400
 ```
-Hasil
+### Hasil
 ![.](img/nomer18a.png)
 
 ## Soal-19
@@ -1138,7 +1138,7 @@ Setelah itu masukkan skrip `apachetes.sh` pada Nakula/Sadewa Client.
 ```shell
 lynx abimanyu.f06.com
 ```
-Hasil
+### Hasil
 ![.](img/nomer19a.png)
 
 ## Soal-20
@@ -1194,7 +1194,7 @@ curl -I www.parikesit.abimanyu.f06.com/public/images/not-abimanyu.png
 curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu
 curl -I www.parikesit.abimanyu.f06.com/public/images/abimanyu.png
 ```
-Hasil
+### Hasil
 ![.](img/nomer20a.png)
 ![.](img/nomer20b.png)
 
